@@ -1,18 +1,39 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <link rel="icon" href="/vue-tg-3x3/favicon.ico">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <link rel="icon" href="/vue-tg-3x3/favicon.ico" />
     <title>3x3 Scorer</title>
 
     <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js?57"></script>
-    <script type="module" crossorigin src="/vue-tg-3x3/assets/index-NXWJ1iup.js?ver=1.23"></script>
-    <link rel="stylesheet" crossorigin href="/vue-tg-3x3/assets/index-D6KFnpAC.css?ver=1.23">
+    <!-- adsblock -->
+    <script src='//libtl.com/sdk.js' data-zone='9535967' data-sdk='show_9535967'></script>
+
+    <!-- In-app Interstitial -->
+    <script>
+      // Ждем загрузки SDK и запускаем In-app Interstitial
+      window.addEventListener('load', function() {
+        if (typeof show_9535967 === 'function') {
+          show_9535967({
+            type: 'inApp',
+            inAppSettings: {
+              frequency: 2,        // показать 2 рекламы
+              capping: 0.1,        // в течение 0.1 часа (6 минут)
+              interval: 30,        // с интервалом 30 секунд
+              timeout: 5,          // задержка 5 секунд перед первым показом
+              everyPage: false     // сохранять сессию при переходах между страницами
+            }
+          });
+        }
+      });
+    </script>
+    <script type="module" crossorigin src="/vue-tg-3x3/assets/index-NXWJ1iup.js?ver=1.123"></script>
+    <link rel="stylesheet" crossorigin href="/vue-tg-3x3/assets/index-D6KFnpAC.css?ver=1.123">
   </head>
   <body>
     <div id="app"></div>

@@ -5,14 +5,10 @@ import { useTelegram } from '@/composables/useTelegram'
 import GameSetupModal from '@/components/GameSetupModal.vue'
 import TeamCard from '@/components/TeamCard.vue'
 import TimerSection from '@/components/TimerSection.vue'
-import GameStats from '@/components/GameStats.vue'
-import CelebrationModal from '@/components/CelebrationModal.vue'
 
 // Game composable
 const {
   gameState,
-  winner,
-  isGameFinished,
   addScore,
   removeScore,
   addFoul,
@@ -21,26 +17,15 @@ const {
   toggleShotClock,
   resetGame,
   startNewGame,
-  getGameStats,
   getGameResult,
 } = useGame()
 
 // Telegram composable
-const {
-  showMainButton,
-  hideMainButton,
-  sendGameResult,
-  showConfirm,
-  hapticFeedback,
-  hapticNotification,
-} = useTelegram()
+const { showMainButton, hideMainButton, sendGameResult, showConfirm, hapticFeedback } =
+  useTelegram()
 
 // UI state
 const showSetupModal = ref(true)
-const showCelebration = ref(false)
-
-// Computed stats
-const stats = computed(() => getGameStats())
 
 // Handle game actions with haptic feedback
 const handleAddScore = (team: 1 | 2, points: number = 1) => {
@@ -84,7 +69,6 @@ const handleNewGame = () => {
   showConfirm('Start a new game? Current progress will be lost.', (confirmed) => {
     if (confirmed) {
       showSetupModal.value = true
-      showCelebration.value = false
     }
   })
 }
@@ -96,7 +80,6 @@ const handleResetGame = () => {
       hapticFeedback('heavy')
       resetGame()
       showSetupModal.value = true
-      showCelebration.value = false
     }
   })
 }
@@ -106,14 +89,6 @@ const handleSendResult = () => {
   const result = getGameResult()
   sendGameResult(result)
 }
-
-// Watch for game finish
-watch(isGameFinished, (finished) => {
-  if (finished) {
-    showCelebration.value = true
-    hapticNotification('success')
-  }
-})
 
 // Watch for game activity to show/hide main button
 const hasGameActivity = computed(() => {
@@ -190,9 +165,6 @@ watch(hasGameActivity, (hasActivity) => {
           Reset
         </button>
       </div>
-
-      <!-- Game Statistics -->
-      <GameStats :stats="stats" />
     </div>
 
     <!-- Desktop Layout (>= 600px) -->
@@ -239,11 +211,6 @@ watch(hasGameActivity, (hasActivity) => {
               Reset
             </button>
           </div>
-
-          <!-- Game Statistics -->
-          <div class="w-full max-w-md">
-            <GameStats :stats="stats" />
-          </div>
         </div>
 
         <!-- Right Team Panel -->
@@ -268,14 +235,6 @@ watch(hasGameActivity, (hasActivity) => {
       :open="showSetupModal"
       @close="showSetupModal = false"
       @start-game="handleStartGame"
-    />
-
-    <CelebrationModal
-      :visible="showCelebration"
-      :winner="winner"
-      :team1-name="gameState.team1Name"
-      :team2-name="gameState.team2Name"
-      @close="showCelebration = false"
     />
   </div>
 </template>

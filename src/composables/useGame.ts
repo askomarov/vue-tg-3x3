@@ -19,13 +19,9 @@ export function useGame() {
 
   const timerInterval = ref<NodeJS.Timeout | null>(null)
   const shotClockInterval = ref<NodeJS.Timeout | null>(null)
-  const winner = ref<number>(0)
-  const isGameFinished = ref<boolean>(false)
 
   // Add points to team
   const addScore = (team: 1 | 2, points: number = 1) => {
-    if (isGameFinished.value) return
-
     if (team === 1) {
       gameState.score1 += points
     } else {
@@ -36,14 +32,10 @@ export function useGame() {
     if (gameState.isTimerRunning) {
       startShotClock()
     }
-
-    checkWinCondition()
   }
 
   // Remove points from team
   const removeScore = (team: 1 | 2) => {
-    if (isGameFinished.value) return
-
     if (team === 1 && gameState.score1 > 0) {
       gameState.score1--
     } else if (team === 2 && gameState.score2 > 0) {
@@ -53,8 +45,6 @@ export function useGame() {
 
   // Add foul to team
   const addFoul = (team: 1 | 2) => {
-    if (isGameFinished.value) return
-
     if (team === 1) {
       gameState.fouls1++
     } else {
@@ -64,8 +54,6 @@ export function useGame() {
 
   // Remove foul from team
   const removeFoul = (team: 1 | 2) => {
-    if (isGameFinished.value) return
-
     if (team === 1 && gameState.fouls1 > 0) {
       gameState.fouls1--
     } else if (team === 2 && gameState.fouls2 > 0) {
@@ -97,10 +85,6 @@ export function useGame() {
         // Time's up
         if (gameState.timer === 0) {
           pauseTimer()
-          // Auto-finish game when time is up
-          if (gameState.score1 !== gameState.score2) {
-            finishGame()
-          }
         }
       }
     }, 1000)
@@ -184,31 +168,6 @@ export function useGame() {
     }
   }
 
-  // Check win condition
-  const checkWinCondition = () => {
-    const { score1, score2 } = gameState
-
-    // Win condition: 21 points or 2-point difference after 20
-    if (score1 >= 21 || score2 >= 21) {
-      if (score1 >= 20 && score2 >= 20) {
-        if (Math.abs(score1 - score2) >= 2) {
-          finishGame()
-        }
-      } else {
-        finishGame()
-      }
-    }
-  }
-
-  // Finish game
-  const finishGame = () => {
-    pauseTimer()
-    pauseShotClock()
-    isGameFinished.value = true
-    winner.value =
-      gameState.score1 > gameState.score2 ? 1 : gameState.score2 > gameState.score1 ? 2 : 0
-  }
-
   // Reset game
   const resetGame = () => {
     pauseTimer()
@@ -224,9 +183,6 @@ export function useGame() {
     gameState.isTimerRunning = false
     gameState.isShotClockRunning = false
     gameState.gameStartTime = null
-
-    winner.value = 0
-    isGameFinished.value = false
   }
 
   // Start new game with team names
@@ -256,6 +212,10 @@ export function useGame() {
   const getGameResult = (): GameResult => {
     const stats = getGameStats()
 
+    // Calculate winner
+    const winner =
+      gameState.score1 > gameState.score2 ? 1 : gameState.score2 > gameState.score1 ? 2 : 0
+
     return {
       score1: gameState.score1,
       score2: gameState.score2,
@@ -263,7 +223,7 @@ export function useGame() {
       fouls2: gameState.fouls2,
       team1Name: gameState.team1Name,
       team2Name: gameState.team2Name,
-      winner: winner.value,
+      winner: winner,
       gameTime: stats.gameTime,
       totalPoints: stats.totalPoints,
       timestamp: Date.now(),
@@ -284,8 +244,6 @@ export function useGame() {
 
   return {
     gameState,
-    winner,
-    isGameFinished,
     addScore,
     removeScore,
     addFoul,

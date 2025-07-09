@@ -1,43 +1,30 @@
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted } from 'vue'
 import type { TelegramWebApp, GameResult } from '@/types/game'
 
 export function useTelegram() {
   let tg: TelegramWebApp | null = null
 
   onMounted(() => {
-    // Initialize Telegram Web App
     if (window.Telegram?.WebApp) {
       tg = window.Telegram.WebApp
       tg.ready()
       tg.expand()
-
-      // Setup theme
       document.documentElement.style.setProperty('--tg-color-scheme', tg.colorScheme)
-
-      // Setup buttons
       setupTelegramButtons()
-
-      // Setup event handlers
       tg.onEvent('themeChanged', updateTheme)
     }
-  })
-
-  onUnmounted(() => {
-    // Clean up intervals or listeners if needed
   })
 
   const setupTelegramButtons = () => {
     if (!tg) return
 
-    // Main button - send result
     if (tg.MainButton) {
       tg.MainButton.text = 'Send Result'
       tg.MainButton.color = tg.themeParams.button_color || '#2481cc'
       tg.MainButton.textColor = tg.themeParams.button_text_color || '#ffffff'
-      tg.MainButton.hide() // Hidden by default
+      tg.MainButton.hide()
     }
 
-    // Back button
     if (tg.BackButton) {
       tg.BackButton.show()
       tg.BackButton.onClick(() => {
@@ -56,6 +43,8 @@ export function useTelegram() {
     if (tg?.MainButton) {
       tg.MainButton.onClick(onClick)
       tg.MainButton.show()
+    } else {
+      console.warn('MainButton not available')
     }
   }
 
@@ -72,33 +61,23 @@ export function useTelegram() {
     }
 
     try {
-      // Clean team names
+      // Prepare game result with only required fields
       const cleanResult = {
-        ...gameResult,
-        team1Name: gameResult.team1Name.replace(/[^\w\sА-Яа-я\-\.]/g, '').trim() || 'Team 1',
-        team2Name: gameResult.team2Name.replace(/[^\w\sА-Яа-я\-\.]/g, '').trim() || 'Team 2',
+        score1: gameResult.score1 || 0,
+        score2: gameResult.score2 || 0,
+        team1Name: gameResult.team1Name?.replace(/[^\w\sА-Яа-я\-\.]/g, '').trim() || 'Team 1',
+        team2Name: gameResult.team2Name?.replace(/[^\w\sА-Яа-я\-\.]/g, '').trim() || 'Team 2',
+        winner: gameResult.winner || 0,
+        gameTime: gameResult.gameTime || 0,
+        totalPoints: gameResult.totalPoints || gameResult.score1 + gameResult.score2 || 0,
+        fouls1: gameResult.fouls1 || 0,
+        fouls2: gameResult.fouls2 || 0,
       }
 
       const dataString = JSON.stringify(cleanResult)
 
-      // Check data size limit (Telegram WebApp ~4KB limit)
-      if (dataString.length > 4000) {
-        // Use compact version
-        const compactResult = {
-          s1: cleanResult.score1,
-          s2: cleanResult.score2,
-          f1: cleanResult.fouls1,
-          f2: cleanResult.fouls2,
-          t1: cleanResult.team1Name,
-          t2: cleanResult.team2Name,
-          w: cleanResult.winner,
-          time: cleanResult.gameTime,
-        }
-
-        tg.sendData(JSON.stringify(compactResult))
-      } else {
-        tg.sendData(dataString)
-      }
+      // Send data
+      tg.sendData(dataString)
 
       // Success feedback
       if (tg.HapticFeedback) {
@@ -113,29 +92,27 @@ export function useTelegram() {
       }, 1500)
     } catch (error) {
       console.error('Error sending game result:', error)
-
-      // Fallback - show result to user
       const resultText = formatGameResultForUser(gameResult)
-      tg.showAlert(`Game result:\\n${resultText}\\n\\nSending error occurred.`)
+      tg.showAlert(`Game result:\n${resultText}\n\nSending error occurred.`)
     }
   }
 
   const formatGameResultForUser = (gameResult: GameResult): string => {
     const winnerText =
       gameResult.winner === 1
-        ? `Winner: ${gameResult.team1Name}`
+        ? `Winner: ${gameResult.team1Name || 'Team 1'}`
         : gameResult.winner === 2
-          ? `Winner: ${gameResult.team2Name}`
+          ? `Winner: ${gameResult.team2Name || 'Team 2'}`
           : 'Draw'
 
-    const minutes = Math.floor(gameResult.gameTime / 60)
-    const seconds = gameResult.gameTime % 60
+    const minutes = Math.floor((gameResult.gameTime || 0) / 60)
+    const seconds = (gameResult.gameTime || 0) % 60
 
-    return `🏀 ${gameResult.team1Name} ${gameResult.score1}:${gameResult.score2} ${gameResult.team2Name}
+    return `🏀 ${gameResult.team1Name || 'Team 1'} ${gameResult.score1 || 0}:${gameResult.score2 || 0} ${gameResult.team2Name || 'Team 2'}
 🏆 ${winnerText}
 ⏱ Time: ${minutes}:${seconds.toString().padStart(2, '0')}
-📊 Total points: ${gameResult.totalPoints}
-🔴 Fouls: ${gameResult.fouls1} - ${gameResult.fouls2}`
+📊 Total points: ${gameResult.totalPoints || gameResult.score1 + gameResult.score2 || 0}
+🔴 Fouls: ${gameResult.fouls1 || 0} - ${gameResult.fouls2 || 0}`
   }
 
   const showAlert = (message: string) => {

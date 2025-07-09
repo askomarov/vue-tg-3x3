@@ -14,6 +14,7 @@ export default defineConfig({
     tailwindcss(),
     svgLoader(),
   ],
+  base: process.env.NODE_ENV === 'production' ? '/vue-tg-3x3/' : '/',
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

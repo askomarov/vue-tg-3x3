@@ -57,7 +57,7 @@ const removeFoul = () => {
         <button
           @click="addScore(1)"
           :class="[
-            'mb-2 rounded-xl border-2 text-6xl font-bold transition-all duration-200 hover:scale-105 active:scale-95',
+            'mb-2 rounded-xl border-2 text-8xl font-bold transition-all duration-200 hover:scale-105 active:scale-95',
             'h-32 w-32 lg:h-40 lg:w-40',
             'border-gray-300 bg-white text-gray-900 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600',
           ]"
@@ -81,9 +81,6 @@ const removeFoul = () => {
         <span class="mb-2 text-sm font-medium opacity-80">Fouls</span>
 
         <button
-          bg-white
-          p-4
-          dark:bg-gray-900
           @click="addFoul"
           :class="[
             'mb-2 rounded-lg border-2 text-2xl font-semibold transition-all duration-200 hover:scale-105 active:scale-95',

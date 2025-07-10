@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import { useGame } from '@/composables/useGame'
 import { useTelegram } from '@/composables/useTelegram'
+import { useAudio } from '@/composables/useAudio'
 import GameSetupModal from '@/components/GameSetupModal.vue'
 import TeamCard from '@/components/TeamCard.vue'
 import TimerSection from '@/components/TimerSection.vue'
@@ -23,6 +24,9 @@ const {
 // Telegram composable
 const { showMainButton, hideMainButton, sendGameResult, showConfirm, hapticFeedback } =
   useTelegram()
+
+// Audio composable for hidden button handler
+const { executeQueuedAudio } = useAudio()
 
 // UI state
 const showSetupModal = ref(true)
@@ -236,5 +240,10 @@ watch(hasGameActivity, (hasActivity) => {
       @close="showSetupModal = false"
       @start-game="handleStartGame"
     />
+
+    <!-- Hidden audio trigger button for WebView autoplay workaround -->
+    <button id="hidden-audio-trigger" @click="executeQueuedAudio" aria-hidden="true" hidden>
+      Audio Trigger
+    </button>
   </div>
 </template>

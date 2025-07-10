@@ -69,7 +69,7 @@ const removeFoul = () => {
           @click="removeScore"
           :class="[
             'rounded-lg text-sm font-medium transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600',
-            'h-16 w-16',
+            'size-12',
           ]"
         >
           -
@@ -84,7 +84,7 @@ const removeFoul = () => {
           @click="addFoul"
           :class="[
             'mb-2 rounded-lg border-2 text-2xl font-semibold transition-all duration-200 hover:scale-105 active:scale-95',
-            'h-16 w-16',
+            'size-16',
             'border-gray-300 bg-white text-gray-900 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600',
           ]"
         >
@@ -96,7 +96,7 @@ const removeFoul = () => {
           :class="[
             'rounded-lg text-xs font-medium transition-colors',
             'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600',
-            'h-16 w-16',
+            'size-12',
           ]"
         >
           -

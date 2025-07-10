@@ -1,19 +1,71 @@
-import { onMounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import type { TelegramWebApp, GameResult } from '@/types/game'
 
 export function useTelegram() {
   let tg: TelegramWebApp | null = null
+  const isFullscreen = ref(false)
+  const safeAreaTop = ref(0)
+  const safeAreaBottom = ref(0)
 
   onMounted(() => {
     if (window.Telegram?.WebApp) {
       tg = window.Telegram.WebApp
       tg.ready()
       tg.expand()
+
+      // Set up theme
       document.documentElement.style.setProperty('--tg-color-scheme', tg.colorScheme)
+
+      // Set up safe areas
+      if (tg.safeAreaInset) {
+        safeAreaTop.value = tg.safeAreaInset.top
+        safeAreaBottom.value = tg.safeAreaInset.bottom
+        document.documentElement.style.setProperty(
+          '--tg-safe-area-top',
+          `${tg.safeAreaInset.top}px`,
+        )
+        document.documentElement.style.setProperty(
+          '--tg-safe-area-bottom',
+          `${tg.safeAreaInset.bottom}px`,
+        )
+      }
+
+      // Set up fullscreen state
+      if (tg.isFullscreen !== undefined) {
+        isFullscreen.value = tg.isFullscreen
+      }
+
       setupTelegramButtons()
-      tg.onEvent('themeChanged', updateTheme)
+      setupEventListeners()
+
+      // Enable swipes for better UX
+      if (tg.enableVerticalSwipes) {
+        tg.enableVerticalSwipes()
+      }
+
+      // Telegram Mini App is ready
     }
   })
+
+  onUnmounted(() => {
+    if (tg) {
+      tg.offEvent('themeChanged', updateTheme)
+      tg.offEvent('fullscreenChanged', updateFullscreen)
+      tg.offEvent('safeAreaChanged', updateSafeArea)
+    }
+  })
+
+  const setupEventListeners = () => {
+    if (!tg) return
+
+    tg.onEvent('themeChanged', updateTheme)
+    if (tg.isVersionAtLeast('8.0')) {
+      tg.onEvent('fullscreenChanged', updateFullscreen)
+      tg.onEvent('safeAreaChanged', updateSafeArea)
+      tg.onEvent('activated', () => console.log('Mini App activated'))
+      tg.onEvent('deactivated', () => console.log('Mini App deactivated'))
+    }
+  }
 
   const setupTelegramButtons = () => {
     if (!tg) return
@@ -36,6 +88,24 @@ export function useTelegram() {
   const updateTheme = () => {
     if (tg) {
       document.documentElement.style.setProperty('--tg-color-scheme', tg.colorScheme)
+    }
+  }
+
+  const updateFullscreen = () => {
+    if (tg && tg.isFullscreen !== undefined) {
+      isFullscreen.value = tg.isFullscreen
+    }
+  }
+
+  const updateSafeArea = () => {
+    if (tg?.safeAreaInset) {
+      safeAreaTop.value = tg.safeAreaInset.top
+      safeAreaBottom.value = tg.safeAreaInset.bottom
+      document.documentElement.style.setProperty('--tg-safe-area-top', `${tg.safeAreaInset.top}px`)
+      document.documentElement.style.setProperty(
+        '--tg-safe-area-bottom',
+        `${tg.safeAreaInset.bottom}px`,
+      )
     }
   }
 
@@ -144,8 +214,41 @@ export function useTelegram() {
     }
   }
 
+  const hapticSelection = () => {
+    if (tg?.HapticFeedback?.selectionChanged) {
+      tg.HapticFeedback.selectionChanged()
+    }
+  }
+
+  const enterFullscreen = () => {
+    if (tg?.requestFullscreen) {
+      tg.requestFullscreen()
+    }
+  }
+
+  const exitFullscreen = () => {
+    if (tg?.exitFullscreen) {
+      tg.exitFullscreen()
+    }
+  }
+
+  const lockOrientation = () => {
+    if (tg?.lockOrientation) {
+      tg.lockOrientation()
+    }
+  }
+
+  const unlockOrientation = () => {
+    if (tg?.unlockOrientation) {
+      tg.unlockOrientation()
+    }
+  }
+
   return {
     tg,
+    isFullscreen,
+    safeAreaTop,
+    safeAreaBottom,
     showMainButton,
     hideMainButton,
     sendGameResult,
@@ -153,5 +256,10 @@ export function useTelegram() {
     showConfirm,
     hapticFeedback,
     hapticNotification,
+    hapticSelection,
+    enterFullscreen,
+    exitFullscreen,
+    lockOrientation,
+    unlockOrientation,
   }
 }

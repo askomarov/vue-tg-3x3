@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, computed } from 'vue'
+import { useAudio } from '@/composables/useAudio'
+import UCheckbox from '@/components/U/Checkbox/UCheckbox.vue'
 
 interface Props {
   open: boolean
@@ -13,8 +15,15 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
+const { isAudioEnabled, setAudioEnabled } = useAudio()
 const team1Name = ref('')
 const team2Name = ref('')
+
+// Create computed property for v-model to work properly
+const audioEnabled = computed({
+  get: () => isAudioEnabled.value,
+  set: (value: boolean) => setAudioEnabled(value),
+})
 
 const startGame = () => {
   const name1 = team1Name.value.trim() || 'Team 1'
@@ -95,6 +104,8 @@ watch(
           />
         </div>
 
+        <!-- Audio settings -->
+        <UCheckbox v-model="audioEnabled" label="🔊 Sound Effects" />
         <div class="flex gap-3 pt-4">
           <button
             type="button"

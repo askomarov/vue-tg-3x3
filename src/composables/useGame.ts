@@ -1,7 +1,10 @@
 import { reactive, ref } from 'vue'
 import type { GameState, GameResult, GameStats } from '@/types/game'
-
+import { useAudio } from './useAudio'
+import { useTelegram } from '@/composables/useTelegram'
 export function useGame() {
+  const { playBuzzer, playBeep } = useAudio()
+  const { hapticFeedback } = useTelegram()
   const gameState = reactive<GameState>({
     score1: 0,
     score2: 0,
@@ -85,6 +88,8 @@ export function useGame() {
         // Time's up
         if (gameState.timer === 0) {
           pauseTimer()
+          // Play buzzer sound when time runs out
+          playBuzzer()
         }
       }
     }, 1000)
@@ -119,12 +124,26 @@ export function useGame() {
 
     shotClockInterval.value = setInterval(() => {
       if (gameState.shotClock > 0) {
+        const prevTime = gameState.shotClock
         gameState.shotClock -= 0.1
         gameState.shotClock = Math.max(0, Math.round(gameState.shotClock * 10) / 10)
+
+        // Play beep when crossing 4, 3, 2, 1 seconds
+        const currentTime = Math.floor(gameState.shotClock)
+        const prevTimeFloored = Math.floor(prevTime)
+
+        // Beep when we cross from 5->4, 4->3, 3->2, 2->1, 1->0
+        if (prevTimeFloored > currentTime && prevTimeFloored >= 1 && prevTimeFloored <= 4) {
+          playBeep()
+          hapticFeedback('light')
+        }
 
         if (gameState.shotClock <= 0) {
           pauseShotClock()
           pauseTimer()
+          // Play buzzer sound when shot clock runs out
+          playBuzzer()
+          hapticFeedback('heavy')
         }
       }
     }, 100)
@@ -138,12 +157,24 @@ export function useGame() {
 
     shotClockInterval.value = setInterval(() => {
       if (gameState.shotClock > 0) {
+        const prevTime = gameState.shotClock
         gameState.shotClock -= 0.1
         gameState.shotClock = Math.max(0, Math.round(gameState.shotClock * 10) / 10)
+
+        // Play beep when crossing 4, 3, 2, 1 seconds
+        const currentTime = Math.floor(gameState.shotClock)
+        const prevTimeFloored = Math.floor(prevTime)
+
+        // Beep when we cross from 5->4, 4->3, 3->2, 2->1, 1->0
+        if (prevTimeFloored > currentTime && prevTimeFloored >= 1 && prevTimeFloored <= 4) {
+          playBeep()
+        }
 
         if (gameState.shotClock <= 0) {
           pauseShotClock()
           pauseTimer()
+          // Play buzzer sound when shot clock runs out
+          playBuzzer()
         }
       }
     }, 100)

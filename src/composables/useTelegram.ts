@@ -246,7 +246,21 @@ export function useTelegram() {
 
   // Check if app is running in Telegram WebView
   const isTelegramWebView = () => {
-    return !!(window.Telegram?.WebApp && tg)
+    // Basic check for Telegram WebApp
+    if (!window.Telegram?.WebApp) return false
+
+    const tg = window.Telegram.WebApp
+
+    // If no user data, it's definitely not Telegram
+    if (!tg.initDataUnsafe?.user) return false
+
+    // Additional checks for Telegram environment
+    const user = tg.initDataUnsafe.user as { id?: number; username?: string }
+    return !!(
+      tg.platform && // Should have platform info
+      tg.version && // Should have version
+      (user.id || user.username) // Should have user ID or username
+    )
   }
 
   return {

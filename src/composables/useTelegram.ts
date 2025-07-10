@@ -244,6 +244,11 @@ export function useTelegram() {
     }
   }
 
+  // Check if app is running in Telegram WebView
+  const isTelegramWebView = () => {
+    return !!(window.Telegram?.WebApp && tg)
+  }
+
   return {
     tg,
     isFullscreen,
@@ -261,5 +266,6 @@ export function useTelegram() {
     exitFullscreen,
     lockOrientation,
     unlockOrientation,
+    isTelegramWebView,
   }
 }

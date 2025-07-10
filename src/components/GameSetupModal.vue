@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick, computed } from 'vue'
 import { useAudio } from '@/composables/useAudio'
+import { useTelegram } from '@/composables/useTelegram'
 import UCheckbox from '@/components/U/Checkbox/UCheckbox.vue'
 
 interface Props {
@@ -16,6 +17,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const { isAudioEnabled, setAudioEnabled } = useAudio()
+const { isTelegramWebView } = useTelegram()
 const team1Name = ref('')
 const team2Name = ref('')
 
@@ -24,6 +26,9 @@ const audioEnabled = computed({
   get: () => isAudioEnabled.value,
   set: (value: boolean) => setAudioEnabled(value),
 })
+
+// Check if we should show audio controls (not in Telegram WebView)
+const showAudioControls = computed(() => !isTelegramWebView())
 
 const startGame = () => {
   const name1 = team1Name.value.trim() || 'Team 1'
@@ -104,8 +109,9 @@ watch(
           />
         </div>
 
-        <!-- Audio settings -->
-        <UCheckbox v-model="audioEnabled" label="🔊 Sound Effects" />
+        <!-- Audio settings - only show if not in Telegram WebView -->
+        <UCheckbox v-if="showAudioControls" v-model="audioEnabled" label="🔊 Sound Effects" />
+
         <div class="flex gap-3 pt-4">
           <button
             type="button"

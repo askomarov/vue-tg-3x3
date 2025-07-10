@@ -2,7 +2,21 @@ import { ref } from 'vue'
 import { useTelegram } from './useTelegram'
 
 // Global state for audio - shared across all instances
+// Automatically disable audio in Telegram WebView due to autoplay restrictions
 const isAudioEnabled = ref(true)
+
+// Initialize audio state based on environment
+const initializeAudioState = () => {
+  // Check if we're in Telegram WebView
+  if (window.Telegram?.WebApp) {
+    isAudioEnabled.value = false // Disable by default in Telegram
+  }
+}
+
+// Initialize on module load
+if (typeof window !== 'undefined') {
+  initializeAudioState()
+}
 
 // Global audio action queue
 let currentAudioAction: (() => Promise<void>) | null = null

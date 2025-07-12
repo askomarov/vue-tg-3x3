@@ -6,6 +6,7 @@ import { useAudio } from '@/composables/useAudio'
 import GameSetupModal from '@/components/GameSetupModal.vue'
 import TeamCard from '@/components/TeamCard.vue'
 import TimerSection from '@/components/TimerSection.vue'
+import ConfirmModal from '@/components/ConfirmModal.vue'
 
 // Game composable
 const {
@@ -16,6 +17,8 @@ const {
   removeFoul,
   toggleTimer,
   toggleShotClock,
+  pauseTimer,
+  startTimer,
   resetGame,
   startNewGame,
   getGameResult,
@@ -30,6 +33,12 @@ const { executeQueuedAudio } = useAudio()
 
 // UI state
 const showSetupModal = ref(true)
+const showConfirmModal = ref(false)
+const confirmMessage = ref('')
+const confirmCallback = ref<((confirmed: boolean) => void) | null>(null)
+
+// Store timer state before pausing for dialogs
+const wasTimerRunningBeforePause = ref(false)
 
 // Handle game actions with haptic feedback
 const handleAddScore = (team: 1 | 2, points: number = 1) => {
@@ -68,9 +77,63 @@ const handleStartGame = (team1Name: string, team2Name: string) => {
   startNewGame(team1Name, team2Name)
 }
 
+// Universal confirm function that works in both Telegram and regular browsers
+const showUniversalConfirm = (message: string, callback: (confirmed: boolean) => void) => {
+  // Pause the game if it's running
+  wasTimerRunningBeforePause.value = gameState.isTimerRunning
+  if (gameState.isTimerRunning) {
+    pauseTimer()
+  }
+
+  // Check if we're really in Telegram WebView and showConfirm is supported
+  const isTelegramWebView =
+    window.Telegram?.WebApp &&
+    typeof window.Telegram.WebApp.showConfirm === 'function' &&
+    window.Telegram.WebApp.platform !== 'unknown'
+
+  const wrappedCallback = (confirmed: boolean) => {
+    // Resume timer only if cancelled and timer was running before
+    if (!confirmed && wasTimerRunningBeforePause.value) {
+      startTimer()
+    }
+    callback(confirmed)
+    wasTimerRunningBeforePause.value = false
+  }
+
+  console.log('isTelegramWebView', isTelegramWebView)
+
+  if (isTelegramWebView) {
+    try {
+      showConfirm(message, wrappedCallback)
+    } catch {
+      // Fallback to our custom modal
+      confirmMessage.value = message
+      confirmCallback.value = wrappedCallback
+      showConfirmModal.value = true
+    }
+  } else {
+    // Use our custom modal for better UX in regular browsers
+    confirmMessage.value = message
+    confirmCallback.value = wrappedCallback
+    showConfirmModal.value = true
+  }
+}
+
+const handleConfirmModalConfirm = () => {
+  confirmCallback.value?.(true)
+  showConfirmModal.value = false
+  confirmCallback.value = null
+}
+
+const handleConfirmModalCancel = () => {
+  confirmCallback.value?.(false)
+  showConfirmModal.value = false
+  confirmCallback.value = null
+}
+
 // New game
 const handleNewGame = () => {
-  showConfirm('Start a new game? Current progress will be lost.', (confirmed) => {
+  showUniversalConfirm('Start a new game? Current progress will be lost.', (confirmed) => {
     if (confirmed) {
       showSetupModal.value = true
     }
@@ -79,7 +142,7 @@ const handleNewGame = () => {
 
 // Reset game
 const handleResetGame = () => {
-  showConfirm('Reset game and start over?', (confirmed) => {
+  showUniversalConfirm('Reset game and start over?', (confirmed) => {
     if (confirmed) {
       hapticFeedback('heavy')
       resetGame()
@@ -115,7 +178,7 @@ watch(hasGameActivity, (hasActivity) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-white p-4 dark:bg-gray-900">
+  <div class="bg-white p-4 dark:bg-gray-900">
     <!-- Mobile Layout (< 600px) -->
     <div class="mx-auto max-w-2xl space-y-6 sm:hidden">
       <!-- Scoreboard -->
@@ -172,7 +235,7 @@ watch(hasGameActivity, (hasActivity) => {
     </div>
 
     <!-- Desktop Layout (>= 600px) -->
-    <div class="hidden sm:flex sm:min-h-screen sm:items-center sm:justify-center">
+    <div class="hidden sm:flex sm:min-h-full sm:items-center sm:justify-center">
       <div class="flex w-full max-w-6xl items-center justify-between gap-4">
         <!-- Left Team Panel -->
         <div class="flex w-64 flex-col">
@@ -239,6 +302,13 @@ watch(hasGameActivity, (hasActivity) => {
       :open="showSetupModal"
       @close="showSetupModal = false"
       @start-game="handleStartGame"
+    />
+    <ConfirmModal
+      :open="showConfirmModal"
+      :message="confirmMessage"
+      @confirm="handleConfirmModalConfirm"
+      @cancel="handleConfirmModalCancel"
+      @close="handleConfirmModalCancel"
     />
 
     <!-- Hidden audio trigger button for WebView autoplay workaround -->

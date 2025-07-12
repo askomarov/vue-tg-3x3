@@ -8,42 +8,53 @@ export function useTelegram() {
   const safeAreaBottom = ref(0)
 
   onMounted(() => {
-    if (window.Telegram?.WebApp) {
-      tg = window.Telegram.WebApp
-      tg.ready()
-      tg.expand()
+    // More robust check for Telegram WebView
+    const isTelegramWebView =
+      window.Telegram?.WebApp &&
+      window.Telegram.WebApp.platform &&
+      window.Telegram.WebApp.platform !== 'unknown' &&
+      typeof window.Telegram.WebApp.ready === 'function'
 
-      // Set up theme
-      document.documentElement.style.setProperty('--tg-color-scheme', tg.colorScheme)
+    if (isTelegramWebView) {
+      try {
+        tg = window.Telegram.WebApp
+        tg.ready()
+        tg.expand()
 
-      // Set up safe areas
-      if (tg.safeAreaInset) {
-        safeAreaTop.value = tg.safeAreaInset.top
-        safeAreaBottom.value = tg.safeAreaInset.bottom
-        document.documentElement.style.setProperty(
-          '--tg-safe-area-top',
-          `${tg.safeAreaInset.top}px`,
-        )
-        document.documentElement.style.setProperty(
-          '--tg-safe-area-bottom',
-          `${tg.safeAreaInset.bottom}px`,
-        )
+        // Set up theme
+        document.documentElement.style.setProperty('--tg-color-scheme', tg.colorScheme)
+
+        // Set up safe areas
+        if (tg.safeAreaInset) {
+          safeAreaTop.value = tg.safeAreaInset.top
+          safeAreaBottom.value = tg.safeAreaInset.bottom
+          document.documentElement.style.setProperty(
+            '--tg-safe-area-top',
+            `${tg.safeAreaInset.top}px`,
+          )
+          document.documentElement.style.setProperty(
+            '--tg-safe-area-bottom',
+            `${tg.safeAreaInset.bottom}px`,
+          )
+        }
+
+        // Set up fullscreen state
+        if (tg.isFullscreen !== undefined) {
+          isFullscreen.value = tg.isFullscreen
+        }
+
+        setupTelegramButtons()
+        setupEventListeners()
+
+        // Enable swipes for better UX
+        if (tg.enableVerticalSwipes) {
+          tg.enableVerticalSwipes()
+        }
+
+        // Telegram Mini App is ready
+      } catch {
+        tg = null
       }
-
-      // Set up fullscreen state
-      if (tg.isFullscreen !== undefined) {
-        isFullscreen.value = tg.isFullscreen
-      }
-
-      setupTelegramButtons()
-      setupEventListeners()
-
-      // Enable swipes for better UX
-      if (tg.enableVerticalSwipes) {
-        tg.enableVerticalSwipes()
-      }
-
-      // Telegram Mini App is ready
     }
   })
 
@@ -194,8 +205,13 @@ export function useTelegram() {
   }
 
   const showConfirm = (message: string, callback: (confirmed: boolean) => void) => {
-    if (tg) {
-      tg.showConfirm(message, callback)
+    if (tg && typeof tg.showConfirm === 'function') {
+      try {
+        tg.showConfirm(message, callback)
+      } catch {
+        const result = confirm(message)
+        callback(result)
+      }
     } else {
       const result = confirm(message)
       callback(result)
@@ -244,25 +260,6 @@ export function useTelegram() {
     }
   }
 
-  // Check if app is running in Telegram WebView
-  const isTelegramWebView = () => {
-    // Basic check for Telegram WebApp
-    if (!window.Telegram?.WebApp) return false
-
-    const tg = window.Telegram.WebApp
-
-    // If no user data, it's definitely not Telegram
-    if (!tg.initDataUnsafe?.user) return false
-
-    // Additional checks for Telegram environment
-    const user = tg.initDataUnsafe.user as { id?: number; username?: string }
-    return !!(
-      tg.platform && // Should have platform info
-      tg.version && // Should have version
-      (user.id || user.username) // Should have user ID or username
-    )
-  }
-
   return {
     tg,
     isFullscreen,
@@ -280,6 +277,5 @@ export function useTelegram() {
     exitFullscreen,
     lockOrientation,
     unlockOrientation,
-    isTelegramWebView,
   }
 }

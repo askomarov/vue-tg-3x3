@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, nextTick, computed } from 'vue'
-import { useAudio } from '@/composables/useAudio'
-import { useTelegram } from '@/composables/useTelegram'
-import UCheckbox from '@/components/U/Checkbox/UCheckbox.vue'
+import { ref, watch, nextTick } from 'vue'
 
 interface Props {
   open: boolean
@@ -16,19 +13,8 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const { isAudioEnabled, setAudioEnabled } = useAudio()
-const { isTelegramWebView } = useTelegram()
 const team1Name = ref('')
 const team2Name = ref('')
-
-// Create computed property for v-model to work properly
-const audioEnabled = computed({
-  get: () => isAudioEnabled.value,
-  set: (value: boolean) => setAudioEnabled(value),
-})
-
-// Check if we should show audio controls (not in Telegram WebView)
-const showAudioControls = computed(() => !isTelegramWebView())
 
 const startGame = () => {
   const name1 = team1Name.value.trim() || 'Team 1'
@@ -71,17 +57,12 @@ watch(
   >
     <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-800">
       <h3 class="mb-6 text-center text-xl font-semibold text-gray-900 dark:text-white">
-        🏀 New Game Setup
+        🏀 New Game 🏀
       </h3>
 
       <form @submit.prevent="startGame" class="space-y-4">
         <div>
-          <label
-            for="team1-name-input"
-            class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            Team 1 Name
-          </label>
+          <label for="team1-name-input" class="sr-only"> Team 1 Name </label>
           <input
             id="team1-name-input"
             v-model="team1Name"
@@ -93,12 +74,7 @@ watch(
         </div>
 
         <div>
-          <label
-            for="team2-name-input"
-            class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            Team 2 Name
-          </label>
+          <label for="team2-name-input" class="sr-only"> Team 2 Name </label>
           <input
             id="team2-name-input"
             v-model="team2Name"
@@ -108,9 +84,6 @@ watch(
             class="w-full rounded-lg border border-gray-300 bg-gray-50 p-3 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
           />
         </div>
-
-        <!-- Audio settings - only show if not in Telegram WebView -->
-        <UCheckbox v-if="showAudioControls" v-model="audioEnabled" label="🔊 Sound Effects" />
 
         <div class="flex gap-3 pt-4">
           <button

@@ -1,1 +1,14 @@
 @import 'tailwindcss';
+
+html,
+body,
+#app {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 100%;
+}
+
+#app {
+  justify-content: center;
+}

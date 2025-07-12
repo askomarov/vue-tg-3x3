@@ -281,6 +281,8 @@ export function useGame() {
     removeFoul,
     toggleTimer,
     toggleShotClock,
+    pauseTimer,
+    startTimer,
     resetGame,
     startNewGame,
     getGameStats,

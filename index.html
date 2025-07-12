@@ -13,25 +13,6 @@
     <script src="https://telegram.org/js/telegram-web-app.js?58"></script>
     <!-- adsblock -->
     <script src="//libtl.com/sdk.js" data-zone="9535967" data-sdk="show_9535967"></script>
-
-    <!-- In-app Interstitial -->
-    <script>
-      // Ждем загрузки SDK и запускаем In-app Interstitial
-      window.addEventListener('load', function () {
-        if (typeof show_9535967 === 'function') {
-          show_9535967({
-            type: 'inApp',
-            inAppSettings: {
-              frequency: 1, // показать 1 рекламы
-              capping: 0.1, // в течение 0.1 часа (6 минут)
-              interval: 30, // с интервалом 30 секунд
-              timeout: 0.3, // задержка 0.3 секунд перед первым показом
-              everyPage: false, // сохранять сессию при переходах между страницами
-            },
-          })
-        }
-      })
-    </script>
   </head>
   <body>
     <div id="app"></div>

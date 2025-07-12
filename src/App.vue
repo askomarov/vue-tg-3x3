@@ -20,6 +20,7 @@ const {
   pauseTimer,
   startTimer,
   resetGame,
+  resetScoreAndTime,
   startNewGame,
   getGameResult,
 } = useGame()
@@ -100,8 +101,6 @@ const showUniversalConfirm = (message: string, callback: (confirmed: boolean) =>
     wasTimerRunningBeforePause.value = false
   }
 
-  console.log('isTelegramWebView', isTelegramWebView)
-
   if (isTelegramWebView) {
     try {
       showConfirm(message, wrappedCallback)
@@ -135,6 +134,7 @@ const handleConfirmModalCancel = () => {
 const handleNewGame = () => {
   showUniversalConfirm('Start a new game? Current progress will be lost.', (confirmed) => {
     if (confirmed) {
+      resetGame() // Full reset including team names and fouls
       showSetupModal.value = true
     }
   })
@@ -142,11 +142,10 @@ const handleNewGame = () => {
 
 // Reset game
 const handleResetGame = () => {
-  showUniversalConfirm('Reset game and start over?', (confirmed) => {
+  showUniversalConfirm('Reset score and time? Fouls and team names will be kept.', (confirmed) => {
     if (confirmed) {
       hapticFeedback('heavy')
-      resetGame()
-      showSetupModal.value = true
+      resetScoreAndTime() // Only reset score and time, keep team names and fouls
     }
   })
 }

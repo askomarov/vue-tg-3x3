@@ -216,6 +216,21 @@ export function useGame() {
     gameState.gameStartTime = null
   }
 
+  // Reset only score and time (keep team names and fouls)
+  const resetScoreAndTime = () => {
+    pauseTimer()
+    pauseShotClock()
+
+    gameState.score1 = 0
+    gameState.score2 = 0
+    gameState.timer = 600
+    gameState.originalTimer = 600
+    gameState.shotClock = 12.0
+    gameState.isTimerRunning = false
+    gameState.isShotClockRunning = false
+    gameState.gameStartTime = null
+  }
+
   // Start new game with team names
   const startNewGame = (team1Name: string, team2Name: string) => {
     resetGame()
@@ -284,6 +299,7 @@ export function useGame() {
     pauseTimer,
     startTimer,
     resetGame,
+    resetScoreAndTime,
     startNewGame,
     getGameStats,
     getGameResult,

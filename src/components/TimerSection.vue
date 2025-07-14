@@ -34,7 +34,7 @@ const toggleShotClock = () => {
 </script>
 
 <template>
-  <div class="flex gap-4">
+  <div class="flex gap-2">
     <!-- Game Timer -->
     <div class="flex-1 rounded-xl bg-gray-100 p-4 text-center dark:bg-gray-800 sm:min-w-[140px]">
       <div
@@ -51,9 +51,7 @@ const toggleShotClock = () => {
       >
         {{ formatGameTime(gameTime) }}
       </button>
-      <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-        {{ isTimerRunning ? 'Running' : 'Paused' }}
-      </div>
+      <div class="mt-1 text-xs text-gray-500 dark:text-gray-400"></div>
     </div>
 
     <!-- Shot Clock -->

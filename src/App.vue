@@ -3,10 +3,12 @@ import { ref, computed, watch } from 'vue'
 import { useGame } from '@/composables/useGame'
 import { useTelegram } from '@/composables/useTelegram'
 import { useAudio } from '@/composables/useAudio'
+import { useAds } from '@/composables/useAds'
 import GameSetupModal from '@/components/GameSetupModal.vue'
 import TeamCard from '@/components/TeamCard.vue'
 import TimerSection from '@/components/TimerSection.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
+import AddSpace from '@/components/AddSpace/AddSpace.vue'
 
 // Game composable
 const {
@@ -31,6 +33,9 @@ const { showMainButton, hideMainButton, sendGameResult, showConfirm, hapticFeedb
 
 // Audio composable for hidden button handler
 const { executeQueuedAudio } = useAudio()
+
+// Ads composable
+const { showInterstitialAd } = useAds()
 
 // UI state
 const showSetupModal = ref(true)
@@ -132,6 +137,9 @@ const handleConfirmModalCancel = () => {
 
 // New game
 const handleNewGame = () => {
+  // Показываем рекламу перед действием
+  showInterstitialAd()
+
   showUniversalConfirm('Start a new game? Current progress will be lost.', (confirmed) => {
     if (confirmed) {
       resetGame() // Full reset including team names and fouls
@@ -142,6 +150,9 @@ const handleNewGame = () => {
 
 // Reset game
 const handleResetGame = () => {
+  // Показываем рекламу перед действием
+  showInterstitialAd()
+
   showUniversalConfirm('Reset score and time? Fouls and team names will be kept.', (confirmed) => {
     if (confirmed) {
       hapticFeedback('heavy')
@@ -177,11 +188,11 @@ watch(hasGameActivity, (hasActivity) => {
 </script>
 
 <template>
-  <div class="bg-white p-4 dark:bg-gray-900">
+  <div class="p-4">
     <!-- Mobile Layout (< 600px) -->
-    <div class="mx-auto max-w-2xl space-y-6 sm:hidden">
+    <div class="mx-auto max-w-2xl space-y-2 sm:hidden">
       <!-- Scoreboard -->
-      <div class="flex gap-4">
+      <div class="flex gap-2">
         <TeamCard
           :team-name="gameState.team1Name"
           :score="gameState.score1"
@@ -192,7 +203,6 @@ watch(hasGameActivity, (hasActivity) => {
           @add-foul="handleAddFoul(1)"
           @remove-foul="handleRemoveFoul(1)"
         />
-
         <TeamCard
           :team-name="gameState.team2Name"
           :score="gameState.score2"
@@ -205,7 +215,8 @@ watch(hasGameActivity, (hasActivity) => {
           @remove-foul="handleRemoveFoul(2)"
         />
       </div>
-
+      <!-- add placeholder -->
+      <AddSpace class="justify-self-center" />
       <!-- Timers -->
       <TimerSection
         :game-time="gameState.timer"
@@ -217,7 +228,7 @@ watch(hasGameActivity, (hasActivity) => {
       />
 
       <!-- Game Controls -->
-      <div class="flex gap-3 text-center">
+      <div class="flex gap-2 text-center">
         <button
           @click="handleNewGame"
           class="flex-1 rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-700"
@@ -277,6 +288,8 @@ watch(hasGameActivity, (hasActivity) => {
               Reset
             </button>
           </div>
+          <!-- add placeholder -->
+          <AddSpace class="justify-self-center" />
         </div>
 
         <!-- Right Team Panel -->

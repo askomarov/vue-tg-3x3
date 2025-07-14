@@ -9,6 +9,10 @@ body,
   min-height: 100%;
 }
 
+body {
+  @apply bg-white dark:bg-gray-900;
+}
+
 #app {
   justify-content: center;
 }

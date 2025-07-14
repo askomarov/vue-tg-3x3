@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { watch } from 'vue'
-import { useAds } from '@/composables/useAds'
-
 interface Props {
   open: boolean
   title?: string
@@ -16,25 +13,13 @@ interface Emits {
   (e: 'close'): void
 }
 
-const props = withDefaults(defineProps<Props>(), {
+const emit = defineEmits<Emits>()
+
+withDefaults(defineProps<Props>(), {
   title: 'Are you sure?',
   confirmText: 'Confirm',
   cancelText: 'Cancel',
 })
-
-const emit = defineEmits<Emits>()
-const { showInterstitialAd } = useAds()
-
-// Показываем рекламу при открытии модального окна
-watch(
-  () => props.open,
-  (newValue) => {
-    if (newValue) {
-      // Показываем рекламу с небольшой задержкой
-      showInterstitialAd()
-    }
-  },
-)
 
 const handleConfirm = () => {
   emit('confirm')

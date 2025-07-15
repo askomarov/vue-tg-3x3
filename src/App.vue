@@ -202,6 +202,7 @@ watch(hasGameActivity, (hasActivity) => {
           @remove-score="handleRemoveScore(1)"
           @add-foul="handleAddFoul(1)"
           @remove-foul="handleRemoveFoul(1)"
+          variant="column"
         />
         <TeamCard
           :team-name="gameState.team2Name"
@@ -213,6 +214,7 @@ watch(hasGameActivity, (hasActivity) => {
           @remove-score="handleRemoveScore(2)"
           @add-foul="handleAddFoul(2)"
           @remove-foul="handleRemoveFoul(2)"
+          variant="column"
         />
       </div>
       <!-- add placeholder -->
@@ -246,9 +248,9 @@ watch(hasGameActivity, (hasActivity) => {
 
     <!-- Desktop Layout (>= 600px) -->
     <div class="hidden sm:flex sm:min-h-full sm:items-center sm:justify-center">
-      <div class="flex w-full max-w-6xl items-center justify-between gap-4">
+      <div class="flex w-full max-w-6xl items-start justify-center gap-2">
         <!-- Left Team Panel -->
-        <div class="flex w-64 flex-col">
+        <div class="flex flex-col">
           <TeamCard
             :team-name="gameState.team1Name"
             :score="gameState.score1"
@@ -258,11 +260,12 @@ watch(hasGameActivity, (hasActivity) => {
             @remove-score="handleRemoveScore(1)"
             @add-foul="handleAddFoul(1)"
             @remove-foul="handleRemoveFoul(1)"
+            variant="row"
           />
         </div>
 
         <!-- Center Panel - Timers and Controls -->
-        <div class="flex flex-1 flex-col items-center gap-3">
+        <div class="flex flex-col items-center gap-3">
           <!-- Timers -->
           <TimerSection
             :game-time="gameState.timer"
@@ -293,7 +296,7 @@ watch(hasGameActivity, (hasActivity) => {
         </div>
 
         <!-- Right Team Panel -->
-        <div class="flex w-64 flex-col">
+        <div class="flex flex-col">
           <TeamCard
             :team-name="gameState.team2Name"
             :score="gameState.score2"
@@ -304,6 +307,7 @@ watch(hasGameActivity, (hasActivity) => {
             @remove-score="handleRemoveScore(2)"
             @add-foul="handleAddFoul(2)"
             @remove-foul="handleRemoveFoul(2)"
+            variant="row"
           />
         </div>
       </div>

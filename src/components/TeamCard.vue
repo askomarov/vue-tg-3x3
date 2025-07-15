@@ -5,6 +5,7 @@ interface Props {
   fouls: number
   isActive?: boolean
   isRight?: boolean
+  variant?: 'row' | 'column'
 }
 
 interface Emits {
@@ -47,17 +48,30 @@ const removeFoul = () => {
     ]"
   >
     <!-- Team Name -->
-    <div class="mb-4 text-center">
-      <h2 class="text-xl font-semibold md:text-2xl">{{ teamName }}</h2>
+    <div class="mb-2 text-center">
+      <h2
+        class="text-xl font-semibold md:text-2xl max-w-[200px] text-nowrap overflow-ellipsis overflow-hidden"
+      >
+        {{ teamName }}
+      </h2>
     </div>
 
-    <div class="flex flex-col items-center gap-4 w-full">
+    <div class="flex flex-col items-center gap-2 w-full">
       <!-- Score Section -->
-      <div class="flex flex-col items-center">
+      <div
+        class="flex items-center gap-2"
+        :class="[
+          {
+            'flex-row-reverse': variant === 'row' && !isRight,
+            'flex-row': variant === 'row' && !isRight,
+            'flex-col': variant === 'column',
+          },
+        ]"
+      >
         <button
           @click="addScore(1)"
           :class="[
-            'mb-2 rounded-xl border-2 text-8xl font-bold transition-all duration-200 hover:scale-105 active:scale-95',
+            ' rounded-xl border-2 text-8xl font-bold transition-all duration-200 hover:scale-105 active:scale-95',
             'h-32 w-32 lg:h-40 lg:w-40',
             'border-gray-300 bg-white text-gray-900 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600',
           ]"
@@ -77,13 +91,22 @@ const removeFoul = () => {
       </div>
 
       <!-- Fouls Section -->
-      <div class="flex flex-col items-center">
-        <span class="mb-2 text-sm font-medium opacity-80">Fouls</span>
+      <div
+        class="flex gap-2 items-center"
+        :class="[
+          {
+            'flex-row-reverse': variant === 'row' && !isRight,
+            'flex-row': variant === 'row' && !isRight,
+            'flex-col': variant === 'column',
+          },
+        ]"
+      >
+        <!-- <span class="mb-2 text-sm font-medium opacity-80">Fouls</span> -->
 
         <button
           @click="addFoul"
           :class="[
-            'mb-2 rounded-lg border-2 text-2xl font-semibold transition-all duration-200 hover:scale-105 active:scale-95',
+            'rounded-lg border-2 text-2xl font-semibold transition-all duration-200 hover:scale-105 active:scale-95',
             'size-16',
             'border-gray-300 bg-white text-gray-900 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600',
           ]"

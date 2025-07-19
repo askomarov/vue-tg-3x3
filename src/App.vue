@@ -29,8 +29,16 @@ const {
 } = useGame()
 
 // Telegram composable
-const { showMainButton, hideMainButton, sendGameResult, showConfirm, hapticFeedback, tg } =
-  useTelegram()
+const {
+  showMainButton,
+  hideMainButton,
+  sendGameResult,
+  showConfirm,
+  hapticFeedback,
+  isTelegramAvailable,
+  hasTelegramUser,
+  tg,
+} = useTelegram()
 
 // Audio composable for hidden button handler
 const { executeQueuedAudio } = useAudio()
@@ -83,7 +91,7 @@ const handleStartGame = (team1Name: string, team2Name: string) => {
   hapticFeedback('medium')
   startNewGame(team1Name, team2Name)
 }
-const isTelegramWebView = ref(false)
+
 // Universal confirm function that works in both Telegram and regular browsers
 const showUniversalConfirm = (message: string, callback: (confirmed: boolean) => void) => {
   // Pause the game if it's running
@@ -91,12 +99,6 @@ const showUniversalConfirm = (message: string, callback: (confirmed: boolean) =>
   if (gameState.isTimerRunning) {
     pauseTimer()
   }
-
-  // Check if we're really in Telegram WebView and showConfirm is supported
-  isTelegramWebView.value =
-    window.Telegram?.WebApp &&
-    typeof window.Telegram.WebApp.showConfirm === 'function' &&
-    window.Telegram.WebApp.platform !== 'unknown'
 
   const wrappedCallback = (confirmed: boolean) => {
     // Resume timer only if cancelled and timer was running before
@@ -107,7 +109,7 @@ const showUniversalConfirm = (message: string, callback: (confirmed: boolean) =>
     wasTimerRunningBeforePause.value = false
   }
 
-  if (isTelegramWebView.value) {
+  if (isTelegramAvailable.value) {
     try {
       showConfirm(message, wrappedCallback)
     } catch {
@@ -211,7 +213,7 @@ watch(
 
 <template>
   <div class="p-4">
-    <IntroSection v-if="!isTelegramWebView" />
+    <IntroSection v-if="!isTelegramAvailable || !hasTelegramUser" />
     <!-- Mobile Layout (< 600px) -->
     <div class="mx-auto max-w-2xl space-y-2 sm:hidden">
       <!-- Scoreboard -->

@@ -6,19 +6,26 @@ export function useTelegram() {
   const isFullscreen = ref(false)
   const safeAreaTop = ref(0)
   const safeAreaBottom = ref(0)
+  const isTgMiniAppActive = ref(false)
   let backButtonHandler: (() => void) | null = null
 
+  // Новые переменные для определения среды
+  const isTelegramAvailable = ref(false)
+  const hasTelegramUser = ref(false)
+
   onMounted(() => {
-    // More robust check for Telegram WebView
+    const tgObj = window.Telegram?.WebApp
+    isTelegramAvailable.value = !!tgObj
+    // Проверяем только platform
+    const isPlatformValid =
+      !!tgObj && typeof tgObj.platform === 'string' && tgObj.platform !== 'unknown'
+    hasTelegramUser.value = isPlatformValid
     const isTelegramWebView =
-      window.Telegram?.WebApp &&
-      window.Telegram.WebApp.platform &&
-      window.Telegram.WebApp.platform !== 'unknown' &&
-      typeof window.Telegram.WebApp.ready === 'function'
+      tgObj && tgObj.platform && tgObj.platform !== 'unknown' && typeof tgObj.ready === 'function'
 
     if (isTelegramWebView) {
       try {
-        tg = window.Telegram.WebApp
+        tg = tgObj
         tg.ready()
         tg.expand()
 
@@ -71,12 +78,18 @@ export function useTelegram() {
     if (!tg) return
 
     tg.onEvent('themeChanged', updateTheme)
-    if (tg.isVersionAtLeast('8.0')) {
-      tg.onEvent('fullscreenChanged', updateFullscreen)
-      tg.onEvent('safeAreaChanged', updateSafeArea)
-      tg.onEvent('activated', () => console.log('Mini App activated'))
-      tg.onEvent('deactivated', () => console.log('Mini App deactivated'))
-    }
+    tg.onEvent('fullscreenChanged', updateFullscreen)
+    tg.onEvent('safeAreaChanged', updateSafeArea)
+    tg.onEvent('activated', () => {
+      console.log('Mini App activated')
+      isTgMiniAppActive.value = true
+    })
+    tg.onEvent('deactivated', () => {
+      console.log('Mini App deactivated')
+      isTgMiniAppActive.value = false
+    })
+    // if (tg.isVersionAtLeast('8.0')) {
+    // }
   }
 
   const setupTelegramButtons = () => {
@@ -277,6 +290,9 @@ export function useTelegram() {
     isFullscreen,
     safeAreaTop,
     safeAreaBottom,
+    isTgMiniAppActive,
+    isTelegramAvailable,
+    hasTelegramUser,
     showMainButton,
     hideMainButton,
     sendGameResult,
@@ -289,6 +305,6 @@ export function useTelegram() {
     exitFullscreen,
     lockOrientation,
     unlockOrientation,
-    setBackButtonHandler, // <-- экспортируем
+    setBackButtonHandler,
   }
 }

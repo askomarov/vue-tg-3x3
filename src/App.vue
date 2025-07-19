@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useGame } from '@/composables/useGame'
 import { useTelegram } from '@/composables/useTelegram'
 import { useAudio } from '@/composables/useAudio'
@@ -10,6 +10,7 @@ import TimerSection from '@/components/TimerSection.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import AddSpace from '@/components/AddSpace/AddSpace.vue'
 import IntroSection from '@/components/IntroSection/IntroSection.vue'
+import type { TelegramWebApp } from '@/types/game'
 
 // Game composable
 const {
@@ -38,6 +39,7 @@ const {
   isTelegramAvailable,
   hasTelegramUser,
   tg,
+  setBackButtonHandler, // добавляем
 } = useTelegram()
 
 // Audio composable for hidden button handler
@@ -194,7 +196,7 @@ watch(hasGameActivity, (hasActivity) => {
 watch(
   hasGameActivity,
   (active) => {
-    const telegram = tg as undefined | null | import('@/types/game').TelegramWebApp
+    const telegram = tg as TelegramWebApp | null
     if (
       telegram &&
       typeof telegram.enableClosingConfirmation === 'function' &&
@@ -209,6 +211,33 @@ watch(
   },
   { immediate: true },
 )
+
+onMounted(() => {
+  setBackButtonHandler(() => {
+    // Проверяем, есть ли активность игры
+    if (
+      gameState.score1 > 0 ||
+      gameState.score2 > 0 ||
+      gameState.fouls1 > 0 ||
+      gameState.fouls2 > 0 ||
+      gameState.gameStartTime !== null
+    ) {
+      // Отправляем результат игры
+      const result = getGameResult()
+      sendGameResult(result)
+    } else {
+      // Просто закрываем приложение
+      const telegram = tg as TelegramWebApp | null
+      if (telegram && typeof telegram.close === 'function') {
+        telegram.close()
+      }
+    }
+  })
+})
+
+onUnmounted(() => {
+  setBackButtonHandler(null)
+})
 </script>
 
 <template>

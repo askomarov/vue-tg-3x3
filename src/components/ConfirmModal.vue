@@ -52,7 +52,7 @@ const handleBackdropClick = () => {
           {{ title }}
         </h3>
 
-        <p class="mb-6 text-center text-gray-700 dark:text-gray-300">
+        <p class="mb-6 text-center text-gray-700">
           {{ message }}
         </p>
 

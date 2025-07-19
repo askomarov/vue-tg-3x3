@@ -9,6 +9,7 @@ import TeamCard from '@/components/TeamCard.vue'
 import TimerSection from '@/components/TimerSection.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import AddSpace from '@/components/AddSpace/AddSpace.vue'
+import IntroSection from '@/components/IntroSection/IntroSection.vue'
 
 // Game composable
 const {
@@ -28,7 +29,7 @@ const {
 } = useGame()
 
 // Telegram composable
-const { showMainButton, hideMainButton, sendGameResult, showConfirm, hapticFeedback } =
+const { showMainButton, hideMainButton, sendGameResult, showConfirm, hapticFeedback, tg } =
   useTelegram()
 
 // Audio composable for hidden button handler
@@ -82,7 +83,7 @@ const handleStartGame = (team1Name: string, team2Name: string) => {
   hapticFeedback('medium')
   startNewGame(team1Name, team2Name)
 }
-
+const isTelegramWebView = ref(false)
 // Universal confirm function that works in both Telegram and regular browsers
 const showUniversalConfirm = (message: string, callback: (confirmed: boolean) => void) => {
   // Pause the game if it's running
@@ -92,7 +93,7 @@ const showUniversalConfirm = (message: string, callback: (confirmed: boolean) =>
   }
 
   // Check if we're really in Telegram WebView and showConfirm is supported
-  const isTelegramWebView =
+  isTelegramWebView.value =
     window.Telegram?.WebApp &&
     typeof window.Telegram.WebApp.showConfirm === 'function' &&
     window.Telegram.WebApp.platform !== 'unknown'
@@ -106,7 +107,7 @@ const showUniversalConfirm = (message: string, callback: (confirmed: boolean) =>
     wasTimerRunningBeforePause.value = false
   }
 
-  if (isTelegramWebView) {
+  if (isTelegramWebView.value) {
     try {
       showConfirm(message, wrappedCallback)
     } catch {
@@ -185,10 +186,32 @@ watch(hasGameActivity, (hasActivity) => {
     hideMainButton()
   }
 })
+
+// --- Удаляем кастомный обработчик BackButton ---
+// Вместо этого следим за hasGameActivity и включаем/выключаем enableClosingConfirmation
+watch(
+  hasGameActivity,
+  (active) => {
+    const telegram = tg as undefined | null | import('@/types/game').TelegramWebApp
+    if (
+      telegram &&
+      typeof telegram.enableClosingConfirmation === 'function' &&
+      typeof telegram.disableClosingConfirmation === 'function'
+    ) {
+      if (active) {
+        telegram.enableClosingConfirmation()
+      } else {
+        telegram.disableClosingConfirmation()
+      }
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
   <div class="p-4">
+    <IntroSection v-if="!isTelegramWebView" />
     <!-- Mobile Layout (< 600px) -->
     <div class="mx-auto max-w-2xl space-y-2 sm:hidden">
       <!-- Scoreboard -->
@@ -219,6 +242,7 @@ watch(hasGameActivity, (hasActivity) => {
       </div>
       <!-- add placeholder -->
       <AddSpace class="justify-self-center" />
+
       <!-- Timers -->
       <TimerSection
         :game-time="gameState.timer"

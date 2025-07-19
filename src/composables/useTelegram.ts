@@ -6,6 +6,7 @@ export function useTelegram() {
   const isFullscreen = ref(false)
   const safeAreaTop = ref(0)
   const safeAreaBottom = ref(0)
+  let backButtonHandler: (() => void) | null = null
 
   onMounted(() => {
     // More robust check for Telegram WebView
@@ -91,7 +92,11 @@ export function useTelegram() {
     if (tg.BackButton) {
       tg.BackButton.show()
       tg.BackButton.onClick(() => {
-        tg?.close()
+        if (backButtonHandler) {
+          backButtonHandler()
+        } else {
+          tg?.close()
+        }
       })
     }
   }
@@ -260,6 +265,13 @@ export function useTelegram() {
     }
   }
 
+  /**
+   * Позволяет задать внешний обработчик для BackButton
+   */
+  const setBackButtonHandler = (handler: (() => void) | null) => {
+    backButtonHandler = handler
+  }
+
   return {
     tg,
     isFullscreen,
@@ -277,5 +289,6 @@ export function useTelegram() {
     exitFullscreen,
     lockOrientation,
     unlockOrientation,
+    setBackButtonHandler, // <-- экспортируем
   }
 }
